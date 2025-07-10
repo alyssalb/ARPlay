@@ -2,84 +2,62 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Wooden Shack Navigation</title>
+    <title>Immersive Room & River</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-event-set-component@5.0.0/dist/aframe-event-set-component.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe-extras/6.1.1/aframe-extras.min.js"></script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+    </style>
   </head>
   <body>
-    <a-scene>
-      <!-- Lighting -->
-      <a-entity light="type: ambient; intensity: 0.5"></a-entity>
-      <a-entity light="type: directional; intensity: 0.8" position="2 4 2"></a-entity>
+    <a-scene fog="type: linear; color: #2e2e2e; near: 1; far: 20" sound="src: #riverSound; autoplay: true; loop: true" shadow="type: pcfsoft">
 
-      <!-- Dirt Floor -->
-      <a-plane 
-        position="0 0 0" 
-        rotation="-90 0 0" 
-        width="10" 
-        height="10" 
-        color="#a0522d" 
-        material="roughness: 1; metalness: 0">
+      <!-- Room interior model -->
+      <a-entity gltf-model="#roomModel" position="0 0 0" scale="1 1 1" shadow></a-entity>
+
+      <!-- Murky river -->
+      <a-plane position="0 0 -10" rotation="-90 0 0" width="20" height="10" 
+               material="shader: flat; src: #murkyTexture; repeat: 4 4; opacity: 0.6" shadow>
       </a-plane>
 
-      <!-- Shack Walls -->
-      <a-box position="0 1.5 -5" width="6" height="3" depth="0.2" color="#8b5a2b"></a-box> <!-- back wall -->
-      <a-box position="-3 1.5 0" width="0.2" height="3" depth="10" color="#8b5a2b"></a-box> <!-- left wall -->
-      <a-box position="3 1.5 0" width="0.2" height="3" depth="10" color="#8b5a2b"></a-box> <!-- right wall -->
-      <a-box position="0 3 -2.5" width="6" height="0.2" depth="5" color="#8b5a2b"></a-box> <!-- ceiling beam -->
+      <!-- Fog / mist layer -->
+      <a-plane position="0 0.2 -10" rotation="-90 0 0" width="20" height="10" 
+               color="#3a3a3a" opacity="0.2" 
+               animation="property: opacity; from: 0.15; to: 0.3; dur: 3000; dir: alternate; loop: true">
+      </a-plane>
 
-      <!-- Oddly Large Door -->
-      <a-box position="0 2 5" width="2.5" height="4" depth="0.1" color="#deb887"></a-box>
-
-      <!-- Desk -->
-      <a-box position="-1.5 0.75 -2" width="1.5" height="0.1" depth="0.75" color="#654321"></a-box>
-      <a-box position="-2.1 0.375 -2.3" width="0.1" height="0.75" depth="0.1" color="#3e2c1c"></a-box>
-      <a-box position="-0.9 0.375 -2.3" width="0.1" height="0.75" depth="0.1" color="#3e2c1c"></a-box>
-
-      <!-- Bunk Bed -->
-      <a-box position="1.5 0.4 -2" width="2" height="0.2" depth="0.8" color="#704214"></a-box>
-      <a-box position="1.5 1.6 -2" width="2" height="0.2" depth="0.8" color="#704214"></a-box>
-      <a-box position="0.6 1 -2.4" width="0.1" height="2.4" depth="0.1" color="#362818"></a-box>
-      <a-box position="2.4 1 -2.4" width="0.1" height="2.4" depth="0.1" color="#362818"></a-box>
-      <a-box position="0.6 1 -1.6" width="0.1" height="2.4" depth="0.1" color="#362818"></a-box>
-      <a-box position="2.4 1 -1.6" width="0.1" height="2.4" depth="0.1" color="#362818"></a-box>
-
-      <!-- Navigation Hotspot: Outside shack -->
-      <a-sphere 
-        class="clickable"
-        position="0 1.6 4.5" 
-        radius="0.2" 
-        color="#00ffff"
-        opacity="0.6"
-        event-set__click="_event: click; _target: #cameraRig; position: 0 1.6 8">
-        <a-text value="Back" position="0 0.4 0" align="center" scale="1 1 1" color="#000000"></a-text>
-      </a-sphere>
-
-      <!-- Navigation Hotspot: Inside shack -->
-      <a-sphere 
-        class="clickable"
-        position="0 1.6 1.5" 
-        radius="0.2" 
-        color="#ffcc00"
-        opacity="0.6"
-        event-set__click="_event: click; _target: #cameraRig; position: 0 1.6 0">
-        <a-text value="Enter" position="0 0.4 0" align="center" scale="1 1 1" color="#000000"></a-text>
-      </a-sphere>
-
-      <!-- Camera Rig (movable via hotspots) -->
-      <a-entity id="cameraRig" position="0 1.6 8">
-        <a-entity 
-          camera 
-          look-controls 
-          wasd-controls="acceleration: 20">
-        </a-entity>
-        <a-entity 
-          cursor="rayOrigin: mouse" 
-          raycaster="objects: .clickable">
-        </a-entity>
+      <!-- Camera rig -->
+      <a-entity id="cameraRig" position="0 1.6 5">
+        <a-entity camera look-controls wasd-controls="acceleration: 10"></a-entity>
+        <a-entity cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
       </a-entity>
+
+      <!-- Hotspot: Move into the room -->
+      <a-sphere class="clickable" position="0 1.6 2" radius="0.25" color="#ffc107" opacity="0.4"
+                event-set__click="_event: click; _target: #cameraRig; position: 0 1.6 0">
+        <a-text value="Enter Room" align="center" position="0 0.4 0" color="#111"></a-text>
+      </a-sphere>
+
+      <!-- Hotspot: Move toward the river -->
+      <a-sphere class="clickable" position="0 1.6 -1.5" radius="0.25" color="#00bcd4" opacity="0.4"
+                event-set__click="_event: click; _target: #cameraRig; position: 0 1.6 -9">
+        <a-text value="Go to River" align="center" position="0 0.4 0" color="#111"></a-text>
+      </a-sphere>
+
+      <!-- Lighting -->
+      <a-entity light="type: ambient; intensity: 0.4"></a-entity>
+      <a-entity light="type: directional; intensity: 0.6; castShadow: true" position="5 10 5"></a-entity>
+
+      <!-- Assets -->
+      <a-assets>
+        <img id="murkyTexture" src="https://cdn.pixabay.com/photo/2017/12/04/19/24/water-2991256_1280.jpg">
+        <a-asset-item id="roomModel" src="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Box/glTF/Box.gltf"></a-asset-item>
+        <audio id="riverSound" src="https://cdn.pixabay.com/download/audio/2022/10/10/audio_e6b8a8a926.mp3?filename=slow-river-flow-ambient-loop-122989.mp3"></audio>
+      </a-assets>
 
     </a-scene>
   </body>
 </html>
+
 
